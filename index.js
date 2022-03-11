@@ -100,4 +100,28 @@ module.exports.getFileMeta = async (filePath) => {
   });
 };
 
+/**
+ *
+ * @param {Object} awsObject
+ * @param {String} awsObject.filePath - absolute file path on your disk
+ * @param {Object} awsObject.s3Client - aws s3 client
+ * @param {String} awsObject.awsBucket - aws s3 bucket name
+ *
+ */
+module.exports.deleteFromS3 = async (awsObject) => {
+  const { filePath, s3Client, awsBucket } = awsObject;
+
+  const objectParams = {
+    Bucket: awsBucket,
+    Key: filePath,
+  };
+
+  if (filePath.includes(".")) {
+    await s3Client.deleteObject(objectParams);
+  } else {
+    objectParams.Key += "/";
+    await S3Lib.deleteDir(s3Client, objectParams);
+  }
+};
+
 module.exports.clientS3 = clientS3;
