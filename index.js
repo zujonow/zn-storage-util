@@ -59,7 +59,7 @@ module.exports.uploadToS3 = async (awsObject) => {
       await s3Client.putObject(objectParams);
     }
   } catch (error) {
-    throw new Error(error.message);
+    throw new Error(error);
   }
 };
 
