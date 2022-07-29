@@ -2,6 +2,7 @@ const S3Lib = require("./lib/s3.lib");
 const fs = require("fs");
 const ffmpeg = require("fluent-ffmpeg");
 const clientS3 = require("@aws-sdk/client-s3");
+const { BlobServiceClient } = require("@azure/storage-blob");
 
 /**
  *
@@ -13,6 +14,7 @@ const clientS3 = require("@aws-sdk/client-s3");
  * @param {String} awsObject.awsACL - aws s3 ACL
  *
  */
+
 module.exports.uploadToS3 = async (awsObject) => {
   //
   const { filePath, awsFilePath, s3Client, awsBucket, awsACL } = awsObject;
@@ -59,6 +61,71 @@ module.exports.uploadToS3 = async (awsObject) => {
       await s3Client.putObject(objectParams);
     }
   } catch (error) {
+    throw new Error(error);
+  }
+};
+
+/**
+ *
+ * @param {Object} blobObject
+ * @param {String} blobObject.filePath - absolute file path on your disk
+ * @param {String} blobObject.blobPath - destination file path on azure blob
+ * @param {Object} blobObject.blobServiceClient - azure blob client
+ * @param {String} blobObject.containerName - azure blob container name
+ *
+ */
+
+module.exports.uploadToBlob = async (blobObject) => {
+  //
+  const { filePath, blobPath, blobServiceClient, containerName } = blobObject;
+
+  //
+  if (!filePath) {
+    throw new Error("filePath is required");
+  }
+
+  //
+  if (!blobPath) {
+    throw new Error("blobPath is required");
+  }
+
+  //
+  if (!blobServiceClient) {
+    throw new Error("BlobServiceClient is required");
+  }
+
+  //
+  if (!containerName) {
+    throw new Error("ContainerName is required");
+  }
+
+  //
+  if (!fs.existsSync(filePath)) {
+    throw new Error("file not found, please provide absolute file path");
+  }
+
+  //
+  const containerClient = blobServiceClient.getContainerClient(containerName);
+
+  //
+  await containerClient.createIfNotExists({
+    access: "container",
+  });
+
+  //
+  const blockBlobClient = containerClient.getBlockBlobClient(blobPath);
+
+  try {
+    //
+    if (fs.statSync(filePath).isDirectory()) {
+      //
+      throw new Error("Directory is not supported yet !!");
+    } else {
+      //
+      await blockBlobClient.uploadFile(filePath);
+    }
+  } catch (error) {
+    //
     throw new Error(error);
   }
 };
@@ -125,3 +192,4 @@ module.exports.deleteFromS3 = async (awsObject) => {
 };
 
 module.exports.clientS3 = clientS3;
+module.exports.BlobServiceClient = BlobServiceClient;
