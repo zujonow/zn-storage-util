@@ -133,7 +133,7 @@ module.exports.uploadToBlob = async (blobObject) => {
 /**
  *
  * @param {String} filePath
- * @returns {{width: number, height: number, duration: number, format: string}}
+ * @returns {{width: number, height: number, duration: number, format: string, size: number}}
  */
 module.exports.getFileMeta = async (filePath) => {
   return new Promise((resolve, reject) => {
@@ -167,6 +167,23 @@ module.exports.getFileMeta = async (filePath) => {
   });
 };
 
+/**
+ *
+ * @param {String} filePath
+ * @returns {{duration: number, format: string, size: number}}
+ */
+module.exports.getAudioFileMeta = async (filePath) => {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(filePath, async (err, metadata) => {
+      if (err) return reject(err);
+      resolve({
+        duration: metadata.format.duration,
+        format: metadata.format.format_name,
+        size: metadata.format.size,
+      });
+    });
+  });
+};
 /**
  *
  * @param {Object} awsObject
