@@ -176,11 +176,6 @@ module.exports.getAudioFileMeta = async (filePath) => {
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(filePath, async (err, metadata) => {
       if (err) return reject(err);
-      console.log({
-        duration: metadata.format.duration,
-        format: metadata.format.format_name,
-        size: typeof metadata.format.size,
-      });
       resolve({
         duration: metadata.format.duration,
         format: metadata.format.format_name,
